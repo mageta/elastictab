@@ -1,0 +1,43 @@
+#
+# ignore files with this pattern
+#
+.*
+*.o
+*.d
+*.o.*
+*.a
+*.s
+*.ko
+*.so
+*.so.dbg
+*.mod.c
+*.i
+*.lst
+*.symtypes
+*.order
+*.elf
+*.bin
+*.gz
+*.bz2
+*.lzma
+*.lzo
+*.patch
+*.gcno
+
+#
+# unignore these files, despite them being ignored in the first listing
+#
+!.gitignore
+
+#
+# some annoying editor-stuff
+#
+*.swp
+*.swo
+*.swm
+*.swn
+*.backup
+*.bck
+*.orig
+*~
+\#*#
