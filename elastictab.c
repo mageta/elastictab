@@ -1,17 +1,17 @@
 /*
  * elastictab: a simple implementation of elastic tabstops in C
  * Copyright (C) 2014  Benjamin Block (bebl@mageta.org)
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 			
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -34,7 +34,7 @@ int elastic_print_create(struct elastic_print *eprint, size_t columns,
 	int rc;
 	size_t i;
 
-	if ((eprint == NULL) || (columns < 1) || (column_widths_min < 1)) {
+	if ((eprint == NULL) || (column_widths_min < 1)) {
 		rc = EINVAL;
 		goto err;
 	}
@@ -45,11 +45,15 @@ int elastic_print_create(struct elastic_print *eprint, size_t columns,
 	eprint->lines_count = 0;
 	eprint->column_widths_min = column_widths_min;
 
-	eprint->column_widths =
-	    calloc(eprint->columns, sizeof(*eprint->column_widths));
-	if (eprint->column_widths == NULL) {
-		rc = ENOMEM;
-		goto err;
+	if (eprint->columns > 0) {
+		eprint->column_widths =
+		    calloc(eprint->columns, sizeof(*eprint->column_widths));
+		if (eprint->column_widths == NULL) {
+			rc = ENOMEM;
+			goto err;
+		}
+	} else {
+		eprint->column_widths = NULL;
 	}
 
 	for (i = 0; i < eprint->columns; i++) {
@@ -114,11 +118,15 @@ int elastic_print_add_line(struct elastic_print *eprint, char *line,
 	}
 
 	last_line = &(eprint->lines[eprint->lines_count - 1]);
-	*last_line = calloc(length + 2, sizeof(**last_line));
+	*last_line = malloc((length + 3) * sizeof(**last_line));
 	if (*last_line == NULL) {
 		rc = ENOMEM;
 		goto err_reduce_line;
 	}
+	/* safety in case someone forgets to account for the 0-terminator in
+	 * `line` and to add a ending '\t' to the line. */
+	(*last_line)[length] = (*last_line)[length + 1] =
+	    (*last_line)[length + 2] = '\0';
 
 	strncpy(*last_line, line, length);
 
@@ -432,6 +440,14 @@ int elastic_print_fput(struct elastic_print * eprint, FILE * stream)
 
 	/* either nonnegative or EOF on error */
 	rc = fputs(buffer, stream);
+	if (rc >= 0) {
+		/* success */
+		rc = 0;
+	} else if (rc != EOF) {
+		/* invalid according to fputs(3) */
+		assert(0);
+		rc = EOF;
+	}
 
 err_free_buffer:
 	free(buffer);

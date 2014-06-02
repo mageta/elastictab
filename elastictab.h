@@ -78,11 +78,13 @@
  */
 struct elastic_print
 {
-	/** how many columns should be accounted for in this instance (> 0)
+	/** how many columns should be accounted for in this instance
 	 *
 	 * only this number of columns/tabs will be elastic in the final
 	 * `put()`. The lines can contain more tabs, but those won't be
 	 * elastic.
+	 *
+	 * In case columns is 0, there will be no column-processing done.
 	 */
 	size_t		columns;
 
@@ -103,7 +105,6 @@ struct elastic_print
  *
  * \para eprint		elastictab instance to be initialised
  * \para columns	number of columns considered in each `add_*()`-call
- *			(> 0)
  * \para column_widths_min
  *			minimum length of each column in this instance (> 0)
  *
